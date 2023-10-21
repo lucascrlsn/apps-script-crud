@@ -2,49 +2,6 @@ function accessCRMCRUD() {
 
   let startFunc = new Date().getTime();
   
-  let scriptProperties = PropertiesService.getScriptProperties();
-
-  // SET WORKSHEET ID
-  var SpreadsheetID = "1ASSelzFhN32EU--JyhYspcy3ZNDZmLWq1Q7Zgupdus4";
-  scriptProperties.setProperty('SpreadsheetID', JSON.stringify(SpreadsheetID).replace(/['"]+/g,""));
-
-  // SET COLUMN HEADER INDEXS IN THE BACKGROUND
-  var ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SpreadsheetID')),
-  ws = ss.getSheetByName("main"),
-  headers = ws.getDataRange().getValues().shift();
-  
-  // SET HEADER INDICES PROPERTY FOR LATER USE
-  scriptProperties.setProperty('rawDataColIndices', JSON.stringify(headers).replace(/['"]+/g,""))
-
-  // CALL PROPERTY BY: PropertiesService.getScriptProperties().getProperty('rawDataColIndices')
-
-  let dateAddedColumnIndex = headers.indexOf("Date Added")+1,
-  firstNameColumnIndex = headers.indexOf("First Name")+1,
-  lastNameColumnIndex = headers.indexOf("Last Name")+1,
-  phoneNumberColumnIndex = headers.indexOf("Phone Number")+1,
-  jobTitleColumnIndex = headers.indexOf("Job Title")+1,
-  companyColumnIndex = headers.indexOf("Company")+1,
-  addressColumnIndex = headers.indexOf("Address")+1,
-  leadTypeColumnIndex = headers.indexOf("Lead Type")+1;
-
-  try {
-    // Set multiple script properties in one call.
-    const scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.setProperties({
-      'dateAddedColumnIndex': JSON.stringify(dateAddedColumnIndex).replace(/['"]+/g,""),
-      'firstNameColumnIndex': JSON.stringify(firstNameColumnIndex).replace(/['"]+/g,""),
-      'lastNameColumnIndex': JSON.stringify(lastNameColumnIndex).replace(/['"]+/g,""),
-      'phoneNumberColumnIndex': JSON.stringify(phoneNumberColumnIndex).replace(/['"]+/g,""),
-      'jobTitleColumnIndex': JSON.stringify(jobTitleColumnIndex).replace(/['"]+/g,""),
-      'companyColumnIndex': JSON.stringify(companyColumnIndex).replace(/['"]+/g,""),
-      'addressColumnIndex': JSON.stringify(addressColumnIndex).replace(/['"]+/g,""),
-      'leadTypeColumnIndex': JSON.stringify(leadTypeColumnIndex).replace(/['"]+/g,"")
-    });
-  } catch (err) {
-    // TODO (developer) - Handle exception
-    console.log('Failed with error %s', err.message);
-  }
-  
   const htmlServ = HtmlService.createTemplateFromFile("app_CRM"),
   html = htmlServ.evaluate();
   html.setWidth(1200).setHeight(400);
@@ -58,10 +15,13 @@ function accessCRMCRUD() {
 
 }
 
-function loadCRMPartialHTML_(partial){
-  // REUSABLE FOR TABS WITHIN CRM EDIT GUI
-  const htmlServ = HtmlService.createTemplateFromFile(partial);
-  return htmlServ.evaluate().getContent();
+const cache = {};
+
+function loadCRMPartialHTML_(partial) {
+  if (!cache[partial]) {
+    cache[partial] = HtmlService.createTemplateFromFile(partial).evaluate().getContent();
+  }
+  return cache[partial];
 }
 
 function loadCRMSearchView(){
@@ -89,19 +49,20 @@ function getCRMDataForSearch(){
   let ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SpreadsheetID'));
   const ws = ss.getSheetByName("main");
 
+  let dataRange = ws.getDataRange();
+  let data = dataRange.getValues();
+
   let endFunc = new Date().getTime();
 
   Logger.log('All data was returned in ' + (endFunc - startFunc) + ' microseconds');
 
-
-  // TRY TO PLACE .withFailureHandler(failedDataRetrieval)
-  return ws.getRange(2,1,ws.getLastRow()-1,ws.getMaxColumns()).getDisplayValues();
+  return data;
 
 }
 
 function deleteCRMDataByID(CRMIdForDelete){
 
-  var startFunc = new Date().getTime();
+  let startFunc = new Date().getTime();
 
   const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SpreadsheetID'));
   const ws = ss.getSheetByName("main");
@@ -112,7 +73,7 @@ function deleteCRMDataByID(CRMIdForDelete){
 
   ws.deleteRow(CRMRecordIdRowNumber);
 
-  var endFunc = new Date().getTime();
+  let endFunc = new Date().getTime();
 
   Logger.log('The record was deleted in ' + (endFunc - startFunc) + ' microseconds');
 }
@@ -129,7 +90,7 @@ function getCRMRecordById(CRMIdForEdit){
   const CRMRecordIdRowNumber = CRMRecordIdPosition === -1 ? 0 : CRMRecordIdPosition + 2;
   const CRMRecordInfo = ws.getRange(CRMRecordIdRowNumber,1,1,ws.getMaxColumns()).getDisplayValues()[0];
 
-  // GET ROW VALUES BY EST COL VARS
+  // GET ROW VALUES BY EST COL letS
   let headers = ws.getDataRange().getValues().shift();
   let dateAdded = headers.indexOf("Date Added");
   let fname = headers.indexOf("First Name");
@@ -162,23 +123,13 @@ function getCRMRecordById(CRMIdForEdit){
 
 function editCRMRecordById(CRMIdForEdit,CRMRecordInfo){
 
-  var startFunc = new Date().getTime();
+  let startFunc = new Date().getTime();
   
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ws = ss.getSheetByName("main");
   const CRMRecordId = ws.getRange(2,1,ws.getLastRow()-1,1).getDisplayValues().map(r => r[0].toString().toLowerCase());
   const CRMRecordIdPosition = CRMRecordId.indexOf(CRMIdForEdit.toString().toLowerCase());
   const CRMRecordIdRowNumber = CRMRecordIdPosition === -1 ? 0 : CRMRecordIdPosition + 2;
-
-  // ONLY WRITE IF A CHANGE WAS MADE BY THE USER
-
-  // PREVIOUS CONDITIONALS
-
-  /*if(CRMRecordInfo.date != ws.getRange(CRMRecordIdRowNumber,PropertiesService.getScriptProperties().getProperty('dateColumnIndex'))){
-    ws.getRange(CRMRecordIdRowNumber,PropertiesService.getScriptProperties().getProperty('dateColumnIndex')).setValue(CRMRecordInfo.date);
-  }*/
-
-  //TERNARY
 
   let changeValue = 'False';
 
@@ -198,7 +149,7 @@ function editCRMRecordById(CRMIdForEdit,CRMRecordInfo){
   
   CRMRecordInfo.leadType != ws.getRange(CRMRecordIdRowNumber,PropertiesService.getScriptProperties().getProperty('leadTypeColumnIndex')) ? ws.getRange(CRMRecordIdRowNumber,PropertiesService.getScriptProperties().getProperty('leadTypeColumnIndex')).setValue(CRMRecordInfo.leadType) : PASS;
   
-  var endFunc = new Date().getTime();
+  let endFunc = new Date().getTime();
 
   Logger.log('A specific record was edited in ' + (endFunc - startFunc) + ' microseconds. Was the date changed? ' + changeValue);
 
