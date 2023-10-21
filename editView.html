@@ -1,0 +1,77 @@
+<h4>Edit CRM Records</h4>
+
+<div class="edit-CRM-form">
+
+<div class="mb-2">
+    <label for="recordID" class="form-label d-none">#</label>
+    <input type="text" class="form-control d-none" id="recordID">
+  </div>
+
+  <div class="mb-2">
+    <label for="date" class="form-label"><strong>Date</strong></label>
+    <input type="date" class="form-control shadow" id="date">
+  </div>
+
+  <div class="mb-2">
+    <label for="site" class="form-label"><strong>Site</strong></label>
+    <input type="text" class="form-control shadow" id="site">
+  </div>
+
+  <div class="mb-2">
+    <label for="process" class="form-label"><strong>Process</strong></label>
+    <input type="text" class="form-control shadow" id="process">
+  </div>
+
+  <div class="mb-2">
+    <label for="shift" class="form-label"><strong>Shift</strong></label>
+    <input type="text" class="form-control shadow" id="shift">
+  </div>
+
+  <div class="mb-2">
+    <label for="justification" class="form-label"><strong>Justification</strong></label>
+    <input type="text" class="form-control shadow" id="justification">
+  </div>
+
+  <div class="mb-2">
+    <label for="employeeType" class="form-label"><strong>Employee Type</strong></label>
+    <input type="text" class="form-control shadow" id="employeeType">
+  </div>
+
+  <div class="mb-2">
+    <label for="fname" class="form-label"><strong>Legal First Name</strong></label>
+    <input type="text" class="form-control shadow" id="fname">
+  </div>
+
+  <div class="mb-2">
+    <label for="lname" class="form-label"><strong>Legal Last Name</strong></label>
+    <input type="text" class="form-control shadow" id="lname">
+  </div>
+
+  <div class="mb-2">
+    <label for="EUID" class="form-label"><strong>EUID</strong></label>
+    <input type="text" class="form-control shadow" id="EUID">
+  </div>
+
+  <div class="mb-2">
+    <label for="securityProfessional" class="form-label-sm">Security Professional</label>
+    <input type="text" class="form-control fodrm-control-sm" id="securityProfessional" disabled>
+  </div>
+
+  <div class="mb-2">
+    <label for="securityProfessionalEmail" class="form-label d-none"><strong>Security Professional Email</strong></label>
+    <input type="email" class="form-control form-control-sm" id="securityProfessionalEmail" disabled hidden>
+  </div>
+
+  <div class="mb-2">
+    <label for="managementReview" class="form-label d-none"><strong>Management Review</strong></label>
+    <input type="email" class="form-control form-control-sm" id="managementReview">
+  </div>
+
+  <button class="btn btn-success" id="save-changes">Save</button>
+  <button class="btn btn-danger" id="cancel-changes">Cancel Changes</button>
+
+</div>
+
+<div class="alert alert-success invisible mt-3" id="save-success-message" role="alert">
+  Changes Saved!
+</div>
