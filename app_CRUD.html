@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+    <style>
+      .nav-link {
+        cursor:pointer;
+      }
+
+      #loading {
+        position:fixed;
+        top:0;
+        left:0;
+        z-index:10000;
+        width:100vw;
+        height:100vh;
+        background-color: rgba(255,255,255,.70);
+      }
+
+    </style>
+
+  </head>
+  <body>
+
+    <div class="container">
+
+      <nav id="navigation" class="mb-3">
+
+        <ul class="nav nav-tabs main-nav">
+
+          <li class="nav-item">
+            <div class="nav-link active" id="CRUD-search-link">Find CRUD Record</div>
+          </li>
+
+          <li class="nav-item">
+            <div class="nav-link" id="CRUD-help-link">Help</div>
+          </li>
+
+        </ul>
+
+      </nav>
+
+      <div id="CRUD-app"></div>
+      <!-- Content here -->
+      </div>
+
+      <div id="loading" class="d-flex justify-content-center align-items-center invisible">
+        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-eMNCOe7tC1doHpGoWe/6oMVemdAVTMs2xqW4mwXrXsW0L84Iytr2wi5v2QjrP/xp" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script>
+    -->
+    <script>
+      let CRUDData;
+
+      function loadView(options){
+        let id = typeof options.id === "undefined" ? "CRUD-app" : options.id;
+        let cb = typeof options.callback === "undefined" ? function(){} : options.callback;
+        // ACTIVATE LOADING MODAL
+        loadingStart();
+        google.script.run.withSuccessHandler(function(html){
+          document.getElementById(id).innerHTML = html;
+          // DEACTIVATE LOADING MODAL
+          loadingEnd();
+          typeof options.params === "undefined" ? cb(): cb(options.params);
+        })[options.func]();
+      }
+
+
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      // LOAD CRUD SEARCH TAB
+      function loadCRUDSearchView(){
+        // PLACE THIS AFTER SEARCHVIEW BELOW IF PASSING PARAMS - , callback: otherFunc, params: {title: "You have executed ANOTHER search!"}
+        loadView({func: "loadCRUDSearchView", callback: setCRUDDataForSearch});
+        document.getElementById("CRUD-search-link").textContent = "Find CRUD Record";
+        
+      }
+
+      async function setCRUDDataForSearch() {
+            // ACTIVATE LOADING MODAL
+            loadingStart();
+
+            // Get the CRM data.
+            const CRUDDataForSliceReturned = await google.script.run.withSuccessHandler(function(CRUDDataForSliceReturned){
+            CRUDData = CRUDDataForSliceReturned.slice();
+            }).getCRUDDataForSearch();
+
+            // DEACTIVATE LOADING MODAL
+            loadingEnd();
+          }
+
+      function searchCRUD(){
+
+        let searchCRUDInput = document.getElementById("searchCRUDInput").value.toString().toLowerCase();
+        let searchCRUDWords = searchCRUDInput.split(/\s+/);
+
+        let CRUDSearchColumns = [0,2,3,4,5,6,7,8,9,13,33,34,35];
+
+        let CRUDResultsArray = searchCRUDInput === "" ? [] : CRUDData.filter(function(r){
+
+          return searchCRUDWords.every(function(word){
+            return CRUDSearchColumns.some(function(colIndex){
+              return r[colIndex].toString().toLowerCase().indexOf(word) !== -1;
+            });
+
+          });
+
+        });
+
+        let CRUDRecordCount = searchCRUDInput === "" ? "" : "Record Count: " + CRUDResultsArray.length;
+        document.getElementById("searchCounter").textContent = CRUDRecordCount;
+
+        let CRUDSearchResultsBox = document.getElementById("CRUDSearchResults");
+        let CRUDTemplateBox = document.getElementById("CRUDRowTemplate");
+        let CRUDTemplate = CRUDTemplateBox.content;
+
+        CRUDSearchResultsBox.innerHTML = "";
+
+        CRUDResultsArray.forEach(function(r){
+
+          let CRUDRow = CRUDTemplate.cloneNode(true);
+
+          let recordIDColumn = CRUDRow.querySelector(".recordID");
+          let dateColumn = CRUDRow.querySelector(".date");
+          let siteColumn = CRUDRow.querySelector(".site");
+          let processColumn = CRUDRow.querySelector(".process");
+          let justificationColumn = CRUDRow.querySelector(".justification");
+          let employeeTypeColumn = CRUDRow.querySelector(".employeeType");
+          let firstNameColumn = CRUDRow.querySelector(".firstName");
+          let lastNameColumn = CRUDRow.querySelector(".lastName");
+          let IDColumn = CRUDRow.querySelector(".ID");
+          let deleteButton = CRUDRow.querySelector(".delete-button");
+          let editButton = CRUDRow.querySelector(".edit-button");
+
+          recordIDColumn.textContent = r[0];
+          deleteButton.dataset.recordID = r[0];
+          editButton.dataset.recordID = r[0];
+          dateColumn.textContent = r[2];
+          siteColumn.textContent = r[3];
+          processColumn.textContent = r[4];
+          justificationColumn.textContent = r[6];
+          employeeTypeColumn.textContent = r[7];
+          firstNameColumn.textContent = r[8];
+          lastNameColumn.textContent = r[9];
+          IDColumn.textContent = r[13];
+
+          CRUDSearchResultsBox.appendChild(CRUDRow);
+
+        });
+
+      }
+
+      function deleteCRUDRecord(e){
+        let CRUDRecordId = e.target.dataset.recordID;
+        // ACTIVATE LOADING MODAL
+        loadingStart();
+        google.script.run.withSuccessHandler(function(){
+          e.target.closest(".CRUD-result-box").remove();
+          let CRUDIds = CRUDData.map(function(r){ return r[0].toString().toLowerCase() });
+          let index = CRUDIds.indexOf(CRUDRecordId.toString().toLowerCase());
+          CRUDData.splice(index,1);
+          // DEACTIVATE LOADING MODAL
+          loadingEnd();
+        }).deleteCRUDDataByID(CRUDRecordId);
+
+      }
+
+      function afterEditViewLoads(params){
+        // FILLS THE EDIT FORM WITH THE EXISTING DATA IN THE SHEET
+
+        // ACTIVATE LOADING MODAL
+        loadingStart();
+
+        // FILLS EDIT FORM WITH CRUD RECORD ID ONLY
+        document.getElementById("recordID").value = params.recordID;
+
+        // GET ENTIRE ROW OF DATA
+        google.script.run.withSuccessHandler(function(CRUDRecordInfo){
+          document.getElementById("date").value = CRUDRecordInfo.date;
+          document.getElementById("site").value = CRUDRecordInfo.site;
+          document.getElementById("process").value = CRUDRecordInfo.process;
+          document.getElementById("shift").value = CRUDRecordInfo.shift;
+          document.getElementById("justification").value = CRUDRecordInfo.justification;
+          document.getElementById("employeeType").value = CRUDRecordInfo.employeeType;
+          document.getElementById("fname").value = CRUDRecordInfo.fname;
+          document.getElementById("lname").value = CRUDRecordInfo.lname;
+          document.getElementById("ID").value = CRUDRecordInfo.ID;
+
+          // DEACTIVATE LOADING MODAL
+          loadingEnd();
+        }).getCRUDRecordById(params.recordID);
+
+        document.getElementById("CRUD-search-link").textContent = "Back";
+        
+      }
+
+      function editCRUDRecord(){
+        // ACTIVATE LOADING MODAL
+        loadingStart();
+
+        // GRAB ALL ROW DATA FROM EDIT FORM AND RUN BACKEND SERVER FUNC
+        let CRUDRecordInfo = {};
+        CRUDRecordInfo.date = document.getElementById("date").value;
+        CRUDRecordInfo.site = document.getElementById("site").value;
+        CRUDRecordInfo.process = document.getElementById("process").value;
+        CRUDRecordInfo.shift = document.getElementById("shift").value;
+        CRUDRecordInfo.justification = document.getElementById("justification").value;
+        CRUDRecordInfo.employeeType = document.getElementById("employeeType").value;
+        CRUDRecordInfo.fname = document.getElementById("fname").value;
+        CRUDRecordInfo.lname = document.getElementById("lname").value;
+        CRUDRecordInfo.ID = document.getElementById("ID").value;    
+
+        // idForEdit NOT PART OF PREVIOUS OBJECT
+        let CRUDIdForEdit = document.getElementById("recordID").value;
+
+        google.script.run.withSuccessHandler(function(res){
+          document.getElementById("save-success-message").classList.remove("invisible");
+          setTimeout(function(){
+            document.getElementById("save-success-message").classList.add("invisible")
+          },2000);
+          setTimeout(function(){loadCRUDSearchView()},1500);
+          // DEACTIVATE LOADING MODAL
+          loadingEnd();          
+        }).editCRUDRecordById(CRUDIdForEdit,CRUDRecordInfo);
+        
+
+      }
+
+
+      function loadCRUDEditView(e){
+        loadView({func: "loadCRUDEditView", callback: afterEditViewLoads, params: {recordID: e.target.dataset.recordID} });
+        
+      }
+
+
+      function loadCRUDHelpView(){
+        loadView({func: "loadCRUDHelpView"});
+        
+      }
+
+      function activeTabChange(e){
+        let navLinks = document.querySelectorAll(".main-nav .nav-link");
+
+        navLinks.forEach(function(linkEl){
+          linkEl.classList.remove("active");
+        });
+        e.target.classList.add("active");
+
+      }
+
+      function loadingStart(){
+        document.getElementById("loading").classList.remove("invisible");
+        
+      }
+
+      function loadingEnd(){
+        document.getElementById("loading").classList.add("invisible");
+        
+      }
+
+      document.getElementById("CRUD-search-link").addEventListener("click",loadCRUDSearchView);
+      document.getElementById("CRUD-help-link").addEventListener("click",loadCRUDHelpView);
+
+      function CRUDInputEventHandler(e){
+        if(e.target.matches("#searchCRUDInput")){
+          searchCRUD();
+        }
+      }
+
+      function clickDeleteEventHandler(e){
+        if(e.target.matches(".delete-button")){
+          deleteCRUDRecord(e);
+        }
+        if(e.target.matches(".edit-button")){
+          loadCRUDEditView(e);
+        }
+
+        if(e.target.matches("#save-changes")){
+          editCRUDRecord();
+        }
+
+        if(e.target.matches("#cancel-changes")){
+          loadCRUDSearchView();
+        }
+
+      }
+
+      function navClickEventHandler(e){
+        if(e.target.matches(".nav-link")){
+          activeTabChange(e);
+        }
+
+      }
+
+      document.getElementById("CRUD-app").addEventListener("input",CRUDInputEventHandler);
+      document.getElementById("CRUD-app").addEventListener("click",clickDeleteEventHandler);
+      document.getElementById("navigation").addEventListener("click",navClickEventHandler);
+      document.addEventListener("DOMContentLoaded", loadCRUDSearchView);
+
+    </script>
+
+
+  </body>
+</html>
+
