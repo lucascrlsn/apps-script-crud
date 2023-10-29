@@ -1,39 +1,49 @@
+<h4>Search</h4>
+
 <div class="form-group">
 
   <div class="input-group mb-3">
-    <input type="text" class="form-control form-control-lg shadow-sm" id="searchCRMInput" placeholder="search...">
+    <input type="text" class="form-control shadow-sm" id="searchCRUDInput" placeholder="search...">
     <span class="input-group-text" id="searchCounter"></span>
   </div>
     <small id="searchHelpBlock" class="form-text text-muted">
-      Press the spacebar to view all records.
+      **Press spacebar to display all records.
     </small>  
 </div>
 
 <table class="table table-striped table-hover table-bordered table-sm">
   <thead>
     <tr>
-      <th scope="col">First Name</th>
-      <th scope="col">Last Name</th>
-      <th scope="col">Phone Number</th>
-      <th scope="col">Job Title</th>
-      <th scope="col">Company</th>
+      <th scope="col" class="text-right d-none">#</th>
+      <th scope="col">Date</th>
+      <th scope="col">First</th>
+      <th scope="col">Last</th>
+      <th scope="col">ID</th>
+      <th scope="col">Employee Type</th>
+      <th scope="col">Site</th>
+      <th scope="col">Process</th>
+      <th scope="col">Justification</th>
+      
     </tr>
   </thead>
-  <tbody id="CRMSearchResults">
+  <tbody id="CRUDSearchResults">
 
   </tbody>
 </table>
 
 
-<template id="CRMRowTemplate">
+<template id="CRUDRowTemplate">
 
-      <tr class="CRM-result-box">
+      <tr class="CRUD-result-box">
         <th class="recordID text-right d-none" scope="row"></th>
-        <td class=".fname"></td>
+        <td class="date"></td>
+        <td class="firstName"></td>
         <td class="lastName"></td>
-        <td class="phoneNumber"></td>
-        <td class="jobTitle"></td>
-        <td class="company"></td>
+        <td class="ID"></td>
+        <td class="employeeType"></td>
+        <td class="site"></td>
+        <td class="process"></td>
+        <td class="justification"></td>
         <td class="text-center"><button type="button" class="btn btn-primary edit-button btn-sm">Edit</button></td>
         <td class="text-center">
           <div class="btn-group" role="group">
@@ -43,3 +53,8 @@
       </tr>
 
 </template>
+
+
+
+
+
